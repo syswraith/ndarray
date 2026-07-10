@@ -18,10 +18,10 @@ typedef struct {
 
 
 Ndarray *create_ndarray(
-    uint8_t *data, size_t data_size,
+    uint8_t *data,
     size_t ndim,
     size_t *shape,
-    uint16_t dtype,
+//    uint16_t dtype,
     size_t itemsize
 );
 
