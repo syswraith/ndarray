@@ -28,3 +28,4 @@ Ndarray *create_ndarray(
 void delete_ndarray(Ndarray *n);
 void printer(Ndarray *n);
 
+int check_equal(Ndarray *n1, Ndarray *n2);

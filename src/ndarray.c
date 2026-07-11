@@ -59,3 +59,19 @@ void printer(Ndarray *n)
     printf("\n");
 }
 
+int check_equal(Ndarray *n1, Ndarray *n2)
+{
+    int ne = 0;
+    for (size_t i = 0; i < n1->ndim; i++)
+            (n1->shape[i] != n2->shape[i] || n1->strides[i] != n2->strides[i]) && ne++;
+
+    return (
+            n1->ndim == n2->ndim
+            &&
+            n1->itemsize == n2->itemsize
+            &&
+            n1->length == n2->length
+            &&
+            !ne
+            );
+}
