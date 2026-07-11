@@ -35,8 +35,27 @@ Ndarray *create_ndarray(
     return n;
 }
 
-void delete_ndarray(Ndarray *n) {
+void delete_ndarray(Ndarray *n)
+{
     free(n->strides);
     free(n);
+}
+
+void printer(Ndarray *n) 
+{
+    printf("ndim: %zu\n", n->ndim);
+    printf("length: %zu\n", n->length);
+    printf("shape: %zu\n", n->itemsize);
+
+    printf("shape:");
+    for (size_t i = 0; i < n->ndim; i++)
+        printf("%zu ", n->shape[i]);
+    printf("\n");
+
+
+    printf("strides:");
+    for (size_t i = 0; i < n->ndim; i++)
+        printf("%zu ", n->strides[i]);
+    printf("\n");
 }
 

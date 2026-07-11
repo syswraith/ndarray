@@ -2,16 +2,17 @@
 
 int main(void) {
 
-uint8_t data[] = {
-     1,  2,  3,  4,
-     5,  6,  7,  8,
-     9, 10, 11, 12
-};
+    uint8_t data[] = {
+        1,  2,  3,  4,
+        5,  6,  7,  8,
+        9, 10, 11, 12
+    };
 
-size_t shape[] = {3, 4};
+    size_t shape[] = {3, 4};
 
-Ndarray *nigga = create_ndarray(data, 2, shape, sizeof(int));
-delete_ndarray(nigga);
+    Ndarray *nigga = create_ndarray(data, 2, shape, sizeof(int));
+    printer(nigga);
+    delete_ndarray(nigga);
 
     return 0;
 }
