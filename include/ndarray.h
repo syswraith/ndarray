@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct {
+typedef struct ndarray {
     // to get from user
     uint8_t *data; // malloc(length * itemsize) at the end
     size_t ndim; // length of shape[] which is dynamically allocated
@@ -9,16 +9,19 @@ typedef struct {
     size_t *shape; // actual input
     uint16_t dtype; // enum name
     size_t itemsize; // actual size
-
     // calculatable
     size_t *strides;
     size_t length;
+
+    // methods
+
 } Ndarray;
 
 
+int check_equal(Ndarray *n1, Ndarray *n2);
 
 Ndarray *create_ndarray(
-    uint8_t *data,
+    void *data,
     size_t ndim,
     size_t *shape,
 //    uint16_t dtype,
@@ -27,5 +30,4 @@ Ndarray *create_ndarray(
 
 void delete_ndarray(Ndarray *n);
 void printer(Ndarray *n);
-
-int check_equal(Ndarray *n1, Ndarray *n2);
+void *index_at(Ndarray *n, size_t indices_size, size_t *indices);
