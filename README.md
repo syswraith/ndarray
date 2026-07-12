@@ -2,7 +2,7 @@
 
 Implemented? | Feature                          | Core idea                                                              | Uses existing memory?                               | Why it's useful                                                        |
 -------------| ---------------------------------| -----------------------------------------------------------------------| --------------------------------------------------- | -----------------------------------------------------------------------|
-No           | Indexing                         | Convert coordinates to a memory offset                                 | Yes                                                 | Access elements in O(1)                                                |
+Yes          | Indexing                         | Convert coordinates to a memory offset                                 | Yes                                                 | Access elements in O(1)                                                |
 No           | Reshape                          | Change the interpretation of memory                                    | Yes                                                 | Different view of the same data                                        |
 No           | Slicing                          | View only part of an array                                             | Yes                                                 | Fast subarrays without copying                                         |
 No           | Element-wise Ops                 | Apply the same operation to every element                              | Reads existing memory, usually writes to new memory | Vectorized computation                                                 |
