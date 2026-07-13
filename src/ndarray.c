@@ -189,14 +189,59 @@ void transpose(Ndarray *n)
 {
 
     for (size_t i = 0; i < n->ndim / 2; i++) {
-        size_t temp = n->shape[i];
+        size_t temp_shape = n->shape[i];
         n->shape[i] = n->shape[n->ndim - i - 1];
-        n->shape[n->ndim - i - 1] = temp;
+        n->shape[n->ndim - i - 1] = temp_shape;
 
-        temp = n->strides[i];
+        size_t temp_stride = n->strides[i];
         n->strides[i] = n->strides[n->ndim - i - 1];
-        n->strides[n->ndim - i - 1] = temp;
+        n->strides[n->ndim - i - 1] = temp_stride;
     }
 
-
 }
+
+Ndarray *flatten(Ndarray *n)
+{
+    Ndarray *new_n = malloc(sizeof(Ndarray));
+    memcpy(new_n, n, sizeof(Ndarray));
+
+    new_n->data = malloc(n->length * n->itemsize);
+    memcpy(new_n->data, n->data, (n->length * n->itemsize));
+
+    new_n->ndim = 1;
+
+    new_n->shape = malloc(new_n->ndim * sizeof(size_t));
+    new_n->strides = malloc(new_n->ndim * sizeof(size_t));
+
+    new_n->shape[0] = n->length;
+    new_n->strides[0] = n->itemsize;
+
+
+    return new_n;
+}
+
+
+int64_t reduce_sum(Ndarray *n)
+{
+    int64_t sum = 0;
+    for (size_t i = 0; i < n->length; i++) {
+        size_t index = i * n->itemsize;
+        sum += n->data[index];
+    }
+
+    return sum;
+}
+
+int64_t reduce_mean(Ndarray *n)
+{
+    int64_t sum = 0;
+    for (size_t i = 0; i < n->length; i++) {
+        size_t index = i * n->itemsize;
+        sum += n->data[index];
+    }
+
+    int64_t mean = sum / n->length;
+
+    return mean;
+}
+

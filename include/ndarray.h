@@ -34,3 +34,8 @@ void *index_at(Ndarray *n, size_t indices_size, size_t *indices);
 void reshape(Ndarray *n, size_t *new_shape);
 Ndarray *element_wise_operation(Ndarray *n, void (*operation)(void *element));
 void transpose(Ndarray *n);
+Ndarray *flatten(Ndarray *n);
+
+
+int64_t reduce_sum(Ndarray *n);
+int64_t reduce_mean(Ndarray *n);

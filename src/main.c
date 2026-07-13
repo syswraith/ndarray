@@ -3,10 +3,12 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void square_int32(void *element) {
+void square_int32(void *element) 
+{
     int32_t *val = (int32_t *)element;
     *val = (*val) * (*val); 
 }
+
 
 int main(void) {
 
@@ -20,9 +22,11 @@ int main(void) {
     size_t shape[] = {4, 3};
     Ndarray *nigga = create_ndarray(data, 2, shape, sizeof(int32_t));
     printer(nigga);
+
+    int64_t sum = reduce_sum(nigga);
+    printf("%ld\n", sum);
     printf("\n");
-    transpose(nigga);
-    printer(nigga);
+
     delete_ndarray(nigga);
 
     return 0;
