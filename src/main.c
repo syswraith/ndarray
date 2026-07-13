@@ -18,19 +18,12 @@ int main(void) {
     };
 
     size_t shape[] = {4, 3};
-
     Ndarray *nigga = create_ndarray(data, 2, shape, sizeof(int32_t));
-
     printer(nigga);
-
-    
-    Ndarray *nigga2 = element_wise_operation(nigga, square_int32);
-
+    printf("\n");
+    transpose(nigga);
     printer(nigga);
-    printer(nigga2);
-
     delete_ndarray(nigga);
-    delete_ndarray(nigga2);
 
     return 0;
 }

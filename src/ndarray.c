@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 Ndarray *create_ndarray(
         void *data,
         size_t ndim,
@@ -13,14 +12,13 @@ Ndarray *create_ndarray(
         )
 {
     Ndarray   *n =         malloc(sizeof(Ndarray));
-    n->data     = (uint8_t *) data;
+
     n->ndim     = ndim;       // 3
     n->shape = malloc(n->ndim * sizeof(size_t));
     
     for (size_t i = 0; i < n->ndim; i++)
         n->shape[i] = shape[i];
 
-    //n->shape    = shape;      // 5, 3, 3
     n->itemsize = itemsize;   // 4  bytes
     n->length   = 1;
     n->strides  = malloc(ndim *  sizeof(size_t));
@@ -28,6 +26,8 @@ Ndarray *create_ndarray(
     for (size_t i = 0; i < ndim; i++)
         n->length *= shape[i];
 
+    n->data = malloc(n->length * n->itemsize);
+    memcpy(n->data, data, (n->length * n->itemsize));
 
     size_t current_stride = itemsize;
 
@@ -41,10 +41,58 @@ Ndarray *create_ndarray(
 
 void delete_ndarray(Ndarray *n)
 {
+    free(n->data);
     free(n->strides);
     free(n->shape);
     free(n);
 }
+
+void print_ndim_recursive(uint8_t *data_ptr, size_t *shape, size_t *strides, size_t ndim, size_t current_dim) 
+{
+    // Base Case: We are at the final dimension, print the actual row of numbers
+    if (current_dim == ndim - 1) {
+        printf("[");
+        for (size_t i = 0; i < shape[current_dim]; i++) {
+            // Calculate the exact byte offset for this specific element
+            int32_t *val = (int32_t *)(data_ptr + (i * strides[current_dim]));
+            
+            printf("%d", *val);
+            if (i < shape[current_dim] - 1) printf(", ");
+        }
+        printf("]");
+        return;
+    }
+
+    // Recursive Case: We have higher dimensions, print brackets and drop down a level
+    printf("[");
+    for (size_t i = 0; i < shape[current_dim]; i++) {
+        // Shift the data pointer forward by the current dimension's stride multiplier
+        uint8_t *next_dimension_ptr = data_ptr + (i * strides[current_dim]);
+        
+        print_ndim_recursive(next_dimension_ptr, shape, strides, ndim, current_dim + 1);
+        
+        // Formatting: don't print a trailing comma on the last element of this block
+        if (i < shape[current_dim] - 1) {
+            printf(",\n");
+            // Indent the next row slightly based on how deep we are for clean alignment
+            for (size_t space = 0; space <= current_dim; space++) printf(" ");
+        }
+    }
+    printf("]");
+}
+
+// wrapper
+void print_ndarray_data(Ndarray *n) 
+{
+    if (!n || !n->data) {
+        printf("[]\n");
+        return;
+    }
+    print_ndim_recursive((uint8_t *)n->data, n->shape, n->strides, n->ndim, 0);
+    printf("\n");
+}
+
+
 
 void printer(Ndarray *n) 
 {
@@ -63,8 +111,8 @@ void printer(Ndarray *n)
         printf("%zu ", n->strides[i]);
     printf("\n");
 
+    print_ndarray_data(n);
 
-    printf(:
 }
 
 int check_equal(Ndarray *n1, Ndarray *n2)
@@ -115,6 +163,10 @@ Ndarray *element_wise_operation(Ndarray *n, void (*operation)(void *element))
 
     Ndarray *new_n = malloc(sizeof(Ndarray));
     memcpy(new_n, n, sizeof(Ndarray));
+
+    new_n->data = malloc(n->length * n->itemsize);
+    memcpy(new_n->data, n->data, (n->length * n->itemsize));
+
     new_n->shape = malloc(n->ndim * sizeof(size_t));
     new_n->strides = malloc(n->ndim * sizeof(size_t));
 
@@ -133,7 +185,18 @@ Ndarray *element_wise_operation(Ndarray *n, void (*operation)(void *element))
     return new_n;
 }
 
+void transpose(Ndarray *n)
+{
+
+    for (size_t i = 0; i < n->ndim / 2; i++) {
+        size_t temp = n->shape[i];
+        n->shape[i] = n->shape[n->ndim - i - 1];
+        n->shape[n->ndim - i - 1] = temp;
+
+        temp = n->strides[i];
+        n->strides[i] = n->strides[n->ndim - i - 1];
+        n->strides[n->ndim - i - 1] = temp;
+    }
 
 
-
-
+}
