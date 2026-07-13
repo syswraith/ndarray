@@ -3,6 +3,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
+void square_int32(void *element) {
+    int32_t *val = (int32_t *)element;
+    *val = (*val) * (*val); 
+}
+
 int main(void) {
 
     int32_t data[] = {
@@ -14,15 +19,18 @@ int main(void) {
 
     size_t shape[] = {4, 3};
 
-    Ndarray *nigga = create_ndarray(data, 2, shape, sizeof(int));
+    Ndarray *nigga = create_ndarray(data, 2, shape, sizeof(int32_t));
 
-    size_t indices[] = {2,2};
+    printer(nigga);
 
-    int32_t *index = index_at(nigga, 2, indices);
+    
+    Ndarray *nigga2 = element_wise_operation(nigga, square_int32);
 
-    printf("%d\n", *index);
+    printer(nigga);
+    printer(nigga2);
 
     delete_ndarray(nigga);
+    delete_ndarray(nigga2);
 
     return 0;
 }

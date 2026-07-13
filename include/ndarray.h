@@ -31,3 +31,5 @@ Ndarray *create_ndarray(
 void delete_ndarray(Ndarray *n);
 void printer(Ndarray *n);
 void *index_at(Ndarray *n, size_t indices_size, size_t *indices);
+void reshape(Ndarray *n, size_t *new_shape);
+Ndarray *element_wise_operation(Ndarray *n, void (*operation)(void *element));

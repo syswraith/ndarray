@@ -15,7 +15,13 @@ VALGRIND := valgrind \
 
 .PHONY: all test clean
 
+
+default: clean all test
+
 all: $(TARGET)
+
+run:
+	./$(TARGET)
 
 $(TARGET): $(SRC)
 	mkdir -p dist
@@ -26,3 +32,5 @@ test: $(TARGET)
 
 clean:
 	rm -rf dist
+
+
