@@ -59,3 +59,6 @@ size_t  reduce_argmax(Ndarray *n);
 
 int64_t get_as_int64(Ndarray *n, size_t index);
 size_t  dtype_size(DType dtype);
+
+
+Ndarray *astype(Ndarray *n, DType new_dtype);

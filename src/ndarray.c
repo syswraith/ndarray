@@ -368,3 +368,67 @@ size_t reduce_argmax(Ndarray *n)
 
     return argmax;
 }
+
+Ndarray *astype(Ndarray *n, DType new_dtype)
+{
+    Ndarray *new_n = malloc(sizeof(Ndarray));
+
+    new_n->ndim = n->ndim;
+    new_n->length = n->length;
+    new_n->dtype = new_dtype;
+    new_n->itemsize = dtype_size(new_dtype);
+
+    new_n->shape = malloc(new_n->ndim * sizeof(size_t));
+    new_n->strides = malloc(new_n->ndim * sizeof(size_t));
+
+    for (size_t i = 0; i < new_n->ndim; i++)
+        new_n->shape[i] = n->shape[i];
+
+    size_t current_stride = new_n->itemsize;
+
+    for (size_t i = new_n->ndim; i-- > 0;) {
+        new_n->strides[i] = current_stride;
+        current_stride *= new_n->shape[i];
+    }
+
+    new_n->data = malloc(new_n->length * new_n->itemsize);
+
+    for (size_t i = 0; i < new_n->length; i++) {
+        int64_t value = get_as_int64(n, i);
+
+        switch (new_dtype) {
+            case UINT8:
+                ((uint8_t *)new_n->data)[i] = (uint8_t)value;
+                break;
+            case UINT16:
+                ((uint16_t *)new_n->data)[i] = (uint16_t)value;
+                break;
+            case UINT32:
+                ((uint32_t *)new_n->data)[i] = (uint32_t)value;
+                break;
+            case UINT64:
+                ((uint64_t *)new_n->data)[i] = (uint64_t)value;
+                break;
+            case INT8:
+                ((int8_t *)new_n->data)[i] = (int8_t)value;
+                break;
+            case INT16:
+                ((int16_t *)new_n->data)[i] = (int16_t)value;
+                break;
+            case INT32:
+                ((int32_t *)new_n->data)[i] = (int32_t)value;
+                break;
+            case INT64:
+                ((int64_t *)new_n->data)[i] = (int64_t)value;
+                break;
+            case FLOAT32:
+                ((float *)new_n->data)[i] = (float)value;
+                break;
+            case FLOAT64:
+                ((double *)new_n->data)[i] = (double)value;
+                break;
+        }
+    }
+
+    return new_n;
+}
