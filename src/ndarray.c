@@ -4,32 +4,54 @@
 #include <stdio.h>
 #include <string.h>
 
+size_t dtype_size(DType dtype)
+{
+    switch (dtype) {
+        case UINT8:   return sizeof(uint8_t);
+        case UINT16:  return sizeof(uint16_t);
+        case UINT32:  return sizeof(uint32_t);
+        case UINT64:  return sizeof(uint64_t);
+
+        case INT8:    return sizeof(int8_t);
+        case INT16:   return sizeof(int16_t);
+        case INT32:   return sizeof(int32_t);
+        case INT64:   return sizeof(int64_t);
+
+        case FLOAT32: return sizeof(float);
+        case FLOAT64: return sizeof(double);
+
+        default:      return 0;
+    }
+}
+
 Ndarray *create_ndarray(
         void *data,
         size_t ndim,
         size_t *shape,
-        size_t itemsize
+        DType dtype
         )
 {
     Ndarray   *n =         malloc(sizeof(Ndarray));
 
     n->ndim     = ndim;       // 3
     n->shape = malloc(n->ndim * sizeof(size_t));
-    
+
     for (size_t i = 0; i < n->ndim; i++)
         n->shape[i] = shape[i];
 
-    n->itemsize = itemsize;   // 4  bytes
     n->length   = 1;
     n->strides  = malloc(ndim *  sizeof(size_t));
 
     for (size_t i = 0; i < ndim; i++)
         n->length *= shape[i];
 
+    n->dtype = dtype;
+
+    n->itemsize = dtype_size(dtype);
     n->data = malloc(n->length * n->itemsize);
     memcpy(n->data, data, (n->length * n->itemsize));
 
-    size_t current_stride = itemsize;
+    size_t current_stride = n->itemsize;
 
     for (size_t i = ndim; i-- > 0;) {
         n->strides[i] = current_stride;
@@ -55,7 +77,7 @@ void print_ndim_recursive(uint8_t *data_ptr, size_t *shape, size_t *strides, siz
         for (size_t i = 0; i < shape[current_dim]; i++) {
             // Calculate the exact byte offset for this specific element
             int32_t *val = (int32_t *)(data_ptr + (i * strides[current_dim]));
-            
+
             printf("%d", *val);
             if (i < shape[current_dim] - 1) printf(", ");
         }
@@ -68,9 +90,9 @@ void print_ndim_recursive(uint8_t *data_ptr, size_t *shape, size_t *strides, siz
     for (size_t i = 0; i < shape[current_dim]; i++) {
         // Shift the data pointer forward by the current dimension's stride multiplier
         uint8_t *next_dimension_ptr = data_ptr + (i * strides[current_dim]);
-        
+
         print_ndim_recursive(next_dimension_ptr, shape, strides, ndim, current_dim + 1);
-        
+
         // Formatting: don't print a trailing comma on the last element of this block
         if (i < shape[current_dim] - 1) {
             printf(",\n");
@@ -146,17 +168,25 @@ void *index_at(Ndarray *n, size_t indices_size, size_t *indices)
 
 void reshape(Ndarray *n, size_t *new_shape)
 {
-    // set shape change and then redo stride calculation
-    n->shape = new_shape;
-    
+    size_t new_length = 1;
+
+    for (size_t i = 0; i < n->ndim; i++)
+        new_length *= new_shape[i];
+
+    if (new_length != n->length)
+        return;
+
+    for (size_t i = 0; i < n->ndim; i++)
+        n->shape[i] = new_shape[i];
+
     size_t current_stride = n->itemsize;
 
     for (size_t i = n->ndim; i-- > 0;) {
         n->strides[i] = current_stride;
         current_stride *= n->shape[i];
     }
-
 }
+
 
 Ndarray *element_wise_operation(Ndarray *n, void (*operation)(void *element)) 
 {
@@ -220,28 +250,121 @@ Ndarray *flatten(Ndarray *n)
     return new_n;
 }
 
+int64_t get_as_int64(Ndarray *n, size_t index)
+{
+    switch (n->dtype) {
+
+        case UINT8:
+            return ((uint8_t *)n->data)[index];
+
+        case UINT16:
+            return ((uint16_t *)n->data)[index];
+
+        case UINT32:
+            return ((uint32_t *)n->data)[index];
+
+        case UINT64:
+            return ((uint64_t *)n->data)[index];
+
+        case INT8:
+            return ((int8_t *)n->data)[index];
+
+        case INT16:
+            return ((int16_t *)n->data)[index];
+
+        case INT32:
+            return ((int32_t *)n->data)[index];
+
+        case INT64:
+            return ((int64_t *)n->data)[index];
+
+        case FLOAT32:
+            return (int64_t)((float *)n->data)[index];
+
+        case FLOAT64:
+            return (int64_t)((double *)n->data)[index];
+
+        default:
+            return 0;
+    }
+}
 
 int64_t reduce_sum(Ndarray *n)
 {
     int64_t sum = 0;
-    for (size_t i = 0; i < n->length; i++) {
-        size_t index = i * n->itemsize;
-        sum += n->data[index];
-    }
+
+    for (size_t i = 0; i < n->length; i++)
+        sum += get_as_int64(n, i);
 
     return sum;
 }
 
-int64_t reduce_mean(Ndarray *n)
+double reduce_mean(Ndarray *n)
 {
-    int64_t sum = 0;
-    for (size_t i = 0; i < n->length; i++) {
-        size_t index = i * n->itemsize;
-        sum += n->data[index];
-    }
+    if (n->length == 0)
+        return 0.0;
 
-    int64_t mean = sum / n->length;
-
-    return mean;
+    return (double)reduce_sum(n) / n->length;
 }
 
+int64_t reduce_min(Ndarray *n)
+{
+    int64_t min = get_as_int64(n, 0);
+
+    for (size_t i = 1; i < n->length; i++) {
+        int64_t value = get_as_int64(n, i);
+
+        if (value < min)
+            min = value;
+    }
+
+    return min;
+}
+
+int64_t reduce_max(Ndarray *n)
+{
+    int64_t max = get_as_int64(n, 0);
+
+    for (size_t i = 1; i < n->length; i++) {
+        int64_t value = get_as_int64(n, i);
+
+        if (value > max)
+            max = value;
+    }
+
+    return max;
+}
+
+size_t reduce_argmin(Ndarray *n)
+{
+    size_t argmin = 0;
+    int64_t min = get_as_int64(n, 0);
+
+    for (size_t i = 1; i < n->length; i++) {
+        int64_t value = get_as_int64(n, i);
+
+        if (value < min) {
+            min = value;
+            argmin = i;
+        }
+    }
+
+    return argmin;
+}
+
+size_t reduce_argmax(Ndarray *n)
+{
+    size_t argmax = 0;
+    int64_t max = get_as_int64(n, 0);
+
+    for (size_t i = 1; i < n->length; i++) {
+        int64_t value = get_as_int64(n, i);
+
+        if (value > max) {
+            max = value;
+            argmax = i;
+        }
+    }
+
+    return argmax;
+}
